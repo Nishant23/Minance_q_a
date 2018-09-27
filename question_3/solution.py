@@ -1,8 +1,12 @@
 import datetime
 import urllib2
+import zipfile
 from StringIO import StringIO
 from zipfile import ZipFile
 
+import os
+
+import pandas as pd
 from BeautifulSoup import BeautifulSoup
 import requests
 from dateutil.relativedelta import relativedelta
@@ -45,3 +49,32 @@ for link in list_links:
             handle.write(chunk)
     handle.close()
     i += 1
+
+dir_name = os.path.dirname(os.path.realpath(__file__))
+extension = ".zip"
+
+os.chdir(dir_name)
+
+for item in os.listdir(dir_name):
+    if item.endswith(extension):
+        file_name = os.path.abspath(item)
+        zip_ref = zipfile.ZipFile(file_name)
+        zip_ref.extractall(dir_name)
+        zip_ref.close()
+        os.remove(file_name)
+
+csv_extension = '.csv'
+file_name_result = 'result.csv'
+
+frame = pd.DataFrame()
+list_ = []
+
+for item in os.listdir(dir_name):
+    if item.endswith(csv_extension):
+        file_name = os.path.abspath(item)
+        df = pd.read_csv(file_name, index_col=None, header=0)
+        list_.append(df)
+        os.remove(file_name)
+
+frame = pd.concat(list_)
+frame.to_csv(file_name_result, encoding='utf-8', index=False)
